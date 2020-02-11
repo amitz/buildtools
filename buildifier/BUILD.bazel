@@ -41,6 +41,6 @@ go_library(
 )
 
 exports_files(
-    ["runner.bash.template"],
+    ["runner.bash.template", "runner.cmd.template"],
     visibility = ["//visibility:public"],
 )

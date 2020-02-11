@@ -26,14 +26,15 @@ def _buildifier_impl(ctx):
         exclude_patterns = ["\\! -path %s" % shell.quote(pattern) for pattern in ctx.attr.exclude_patterns]
         exclude_patterns_str = " ".join(exclude_patterns)
 
-    out_file = ctx.actions.declare_file(ctx.label.name + ".bash")
+    os_extension = str(ctx.file.runner).split('.')[1].split('.')[0]
+    out_file = ctx.actions.declare_file(ctx.label.name + ".{}".format(os_extension))
     substitutions = {
         "@@ARGS@@": shell.array_literal(args),
         "@@BUILDIFIER_SHORT_PATH@@": shell.quote(ctx.executable._buildifier.short_path),
         "@@EXCLUDE_PATTERNS@@": exclude_patterns_str,
     }
     ctx.actions.expand_template(
-        template = ctx.file._runner,
+        template = ctx.file.runner,
         output = out_file,
         substitutions = substitutions,
         is_executable = True,
@@ -80,14 +81,14 @@ _buildifier = rule(
             doc = "path to JSON file with custom table definitions which will be merged with the built-in tables",
             allow_single_file = True,
         ),
+        "runner": attr.label(
+            default = "@com_github_bazelbuild_buildtools//buildifier:runner.bash.template",
+            allow_single_file = True,
+        ),
         "_buildifier": attr.label(
             default = "@com_github_bazelbuild_buildtools//buildifier",
             cfg = "host",
             executable = True,
-        ),
-        "_runner": attr.label(
-            default = "@com_github_bazelbuild_buildtools//buildifier:runner.bash.template",
-            allow_single_file = True,
         ),
     },
     executable = True,
